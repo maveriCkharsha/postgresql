@@ -1,0 +1,17 @@
+
+Suppose we wanted to write “1234” to the data file. What if we crashed after “12”? The result would be a broken row somewhere in the table. Perhaps index entries would be missing, and so on – we have to prevent that at all costs.
+
+
+1. PostgreSQL writes new data first to WAL.
+2. WAL sends the data to shared buffers.  (If a read request comes in, it will not make it to the data files anyway – because the data is found in the cache.)
+3. After a checkpoint, the data is written to data files using BG Writer. 
+
+
+
+test=# SHOW checkpoint_completion_target;
+checkpoint_completion_target
+------------------------------
+0.5
+(1 row)
+
+this parameter is gone from 14 and default value will be 0.9
