@@ -1,0 +1,5 @@
+B Tree --- >, < , = 
+Hash --- = (equality operator)
+Gist (Generalized Search Tree) --- Full Text search, Geometric Data, pattern matching
+Gin (Generalized Inverted Indexes) --- Arrays, JSON
+BRIN --- Block Range - certain sort order -  a table storing a ZIP code column might have all codes for a city grouped together naturally.
