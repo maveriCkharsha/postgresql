@@ -93,6 +93,11 @@ emp_no,ename,manager_no,manager_name
 12	B2   	10	A1   
 13	B3   	10	A1   
 14	C1   	13	B3  
+15	C2   	13	B3   
+16	D1   	15	C2   
+17	E1   	11	B1   
+18	E2   	11	B1   
+
 
 
 CREATE TABLE bst (n int, p int);
@@ -133,7 +138,7 @@ FROM cte ORDER BY n;
 |9  |Leaf |
 
 
-REATE TABLE employees (
+CREATE TABLE employees (
    id serial PRIMARY KEY,
    name varchar(255) NOT NULL,
    salary integer,
@@ -254,14 +259,3 @@ SELECT STRING_AGG(job, '-> ' ORDER BY level) FROM cte;
 |string_agg                    |
 |------------------------------|
 |Developer-> Manager-> VP-> CEO|
-
-
-
-
-
-
- 
-15	C2   	13	B3   
-16	D1   	15	C2   
-17	E1   	11	B1   
-18	E2   	11	B1   
