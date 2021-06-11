@@ -92,7 +92,175 @@ emp_no,ename,manager_no,manager_name
 11	B1   	10	A1   
 12	B2   	10	A1   
 13	B3   	10	A1   
-14	C1   	13	B3   
+14	C1   	13	B3  
+
+
+CREATE TABLE bst (n int, p int);
+
+INSERT INTO bst VALUES (1,2), (3,2), (6,8), (9,8), (2,5), (8,5), (5, null);
+
+WITH RECURSIVE cte AS (
+	SELECT 
+		n,
+		p,
+		0 as level
+	FROM bst
+	WHERE p ISNULL
+	UNION ALL 
+	SELECT 
+		t.n,
+		t.p,
+		level + 1
+	FROM bst t 
+		JOIN cte ON cte.n = t.p
+)
+SELECT 
+	n,CASE 
+		WHEN level = 0 THEN 'Root'
+		WHEN level = (SELECT level FROM cte ORDER BY level DESC limit 1) THEN 'Leaf'
+		ELSE 'Inner'
+	END
+FROM cte ORDER BY n;
+
+|n  |case |
+|---|-----|
+|1  |Leaf |
+|2  |Inner|
+|3  |Leaf |
+|5  |Root |
+|6  |Leaf |
+|8  |Inner|
+|9  |Leaf |
+
+
+REATE TABLE employees (
+   id serial PRIMARY KEY,
+   name varchar(255) NOT NULL,
+   salary integer,
+   job varchar(255),
+   manager_id int,
+   FOREIGN KEY (manager_id) REFERENCES employees (id) ON DELETE CASCADE
+);
+
+INSERT INTO employees (
+    id,
+    name,
+    manager_id,
+    salary,
+    job
+)
+VALUES
+    (1,  'John', NULL, 10000, 'CEO'),
+    (2,  'Ben', 5, 1400, 'Junior Developer'),
+    (3,  'Barry', 5, 500, 'Intern'),
+    (4,  'George', 5, 1800, 'Developer'),
+    (5,  'James', 7, 3000, 'Manager'),
+    (6,  'Steven', 7, 2400, 'DevOps Engineer'),
+    (7,  'Alice', 1, 4200, 'VP'),
+    (8,  'Jerry', 1, 3500, 'Manager'),
+    (9,  'Adam', 8, 2000, 'Data Analyst'),
+    (10, 'Grace', 8, 2500, 'Developer');
+   
+   
+    
+-- to check from certain level 		
+WITH RECURSIVE cte AS (
+	SELECT 
+		id, 
+		name, 
+		manager_id,
+		1 as level
+	FROM employees
+	WHERE id = 7
+	UNION ALL
+	SELECT
+		e.id,
+		e.name,
+		e.manager_id,
+		level + 1
+	FROM employees e
+		JOIN cte ON e.manager_id = cte.id
+)
+SELECT * FROM cte;
+
+|id |name  |manager_id|level|
+|---|------|----------|-----|
+|7  |Alice |1         |1    |
+|5  |James |7         |2    |
+|6  |Steven|7         |2    |
+|2  |Ben   |5         |3    |
+|3  |Barry |5         |3    |
+|4  |George|5         |3    |
+
+
+-- to check from CEO level 		
+WITH RECURSIVE cte AS (
+	SELECT 
+		id, 
+		name, 
+		manager_id,
+		1 as level
+	FROM employees
+	WHERE manager_id ISNULL
+	UNION ALL
+	SELECT
+		e.id,
+		e.name,
+		e.manager_id,
+		level + 1
+	FROM employees e
+		JOIN cte ON e.manager_id = cte.id
+)
+SELECT * FROM cte;
+
+
+|id |name  |manager_id|level|
+|---|------|----------|-----|
+|1  |John  |          |1    |
+|7  |Alice |1         |2    |
+|8  |Jerry |1         |2    |
+|5  |James |7         |3    |
+|6  |Steven|7         |3    |
+|9  |Adam  |8         |3    |
+|10 |Grace |8         |3    |
+|2  |Ben   |5         |4    |
+|3  |Barry |5         |4    |
+|4  |George|5         |4    |
+
+
+--  job progression
+
+WITH RECURSIVE cte AS (
+	SELECT 
+		id, 
+		name,
+		manager_id,
+		job,
+		0 as level
+	FROM employees
+	WHERE name = 'George'
+	UNION ALL
+	SELECT 
+		e.id,
+		e.name,
+		e.manager_id,
+		e.job,
+		level + 1
+	FROM employees e
+		JOIN cte ON e.id = cte.manager_id
+)
+SELECT STRING_AGG(job, '-> ' ORDER BY level) FROM cte;
+
+|string_agg                    |
+|------------------------------|
+|Developer-> Manager-> VP-> CEO|
+
+
+
+
+
+
+ 
 15	C2   	13	B3   
 16	D1   	15	C2   
 17	E1   	11	B1   
