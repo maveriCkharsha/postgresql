@@ -1,0 +1,23 @@
+MVCC
+
+- reads never block writes and writes never block reads
+
+- MVCC is a method PG uses to handle data consistency when multiple processes are accessing the same table
+
+- While Oracle and MySQL use the undo log to capture uncommitted changes so that rows can be reconstructed to their previously committed version, PostgreSQL stores all row versions in the table data structure.
+    What’s even more interesting is that every row has two additional columns:
+    x min  – which defines the transaction id that inserted the record
+    x max  – which defines the transaction id that deleted the row
+
+
+- MVCC - How Insert works
+
+    1. Both Alice and Bob start a new transaction, and we can see their transaction ids by calling the txid_current() PostgreSQL function
+    2. When Alice inserts a new post row, the x min  column value is set to Alice’s transaction id
+    3. Under default Read Committed isolation level, Bob cannot see Alice’s newly inserted record until Alice committs her transaction
+    4. After Alice has committed, Bob can now see Alice’s newly inserted row
+
+
+- Drawbacks 
+    - More space to store multiple versions - can use VACCUM
+    - 
