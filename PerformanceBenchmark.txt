@@ -1,0 +1,23 @@
+Not only PGBENCH, there is one more tool called HammerDB which is used to test the bench marking of the databases
+
+https://www.youtube.com/watch?v=PAktFHBT_QU
+
+It can be configurable
+
+1. Configured at number of users
+2. Configured at number of ware houses 
+3. Configured at number of transactions per user
+4. Configured at Total Time to run the test 
+
+
+
+At the end, the test results are like below
+
+140 Active virtual users are configured 
+TEST RESULT : System achieved 1722391 NOPM from 5216847 MySQL TPM 
+
+NOPM : Number of Orders per minute  (Orders is a table in the default schema created by HammerDB)
+    This number tells that number of transactions per minute (How fast are you going)
+
+TPM : 
+    How hard your engine is working
