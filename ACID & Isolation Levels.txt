@@ -8,3 +8,25 @@ Isolation - Transaction should be independent from the other transcations withou
 
 Durability - Transaction should hold even when the system fails. 
 
+Transaction Isolation Levels 
+
+    Out of 4 ACID properties, Isolation decides the transaction integrity. 
+
+    Transaction Isolation level is decided based on the below phenonemon.
+
+    1. Dirty Read - Its a state where the transaction reads the data which is not yet committed. 
+
+    2. Non Repetable Read - Reads same row twice and gets different results. 
+
+    3. Phantom read - Occurs when two same queries are executed, but the rows retrieved by the two are different. 
+
+
+Based on these phenomena, The SQL standard defines four isolation levels :
+
+    Read Uncommitted - Transactions may not read the Uncommitted data 
+
+    Read committed - this level guarantees that any data read is committed at the moment it is read 
+
+    Repetable Read - restrictive level - locks whenever there are any DMLs. 
+
+    Serializable - HIghest isolation level - 
