@@ -1,0 +1,10 @@
+TO maintain Database transcations consistent DB needs to follow certain properties. And they are called ACID properties.
+
+Atomicity - Either the transaction is complete or not
+
+Consistency -  DB must be consistent before and after the transaction
+
+Isolation - Transaction should be independent from the other transcations without inteference. 
+
+Durability - Transaction should hold even when the system fails. 
+

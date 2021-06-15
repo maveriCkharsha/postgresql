@@ -1,0 +1,8 @@
+                        Nested Loop Join	                        Hash Join	                        Merge Join
+Algorithm	        For each outer relation row,        Build a hash from the inner relation, 
+                    scan the inner relation	            scan the outer relation, probe the hash	    Sort both relations and merge rows
+
+Indexes that help	Index on the join keys of 
+                    the inner relation	                            None	                        Indexes on the join keys of both relations
+
+Good strategy if	the outer table is small	            the hash table fits into work_mem	        both tables are large

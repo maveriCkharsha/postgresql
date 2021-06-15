@@ -1,0 +1,10 @@
+
+
+max_parallel_workers_per_gather needs to be greater than zero
+
+Limitations:
+
+- Increases memory usage with high WORK_MEM values, as each hash join or sort operation takes a work_mem amount of memory.
+- There is no support for cursors or suspended queries.
+- No support for CTEs
+- No support for FULL JOIN
