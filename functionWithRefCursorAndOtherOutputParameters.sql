@@ -30,3 +30,29 @@ begin
 end;
 $$
 language plpgsql
+
+
+-- with composite type and other ouptput parameters
+create type type_x as (propcode int, propname text);
+
+
+CREATE OR REPLACE FUNCTION employeefunc1 (rc_out OUT type_x[], x out int)
+returns record 
+AS
+$$
+declare 
+    z record;
+    propc int;
+    pname text;
+BEGIN
+    rc_out := ARRAY(SELECT ROW(propcode, propname) :: type_x FROM prop LIMIT 5);
+        
+x := 0;
+END;
+$$ LANGUAGE plpgsql;       
+
+
+select (unnest(rc_out)).propcode, (unnest(rc_out)).propname from employeefunc1() ;
+
+select (unnest(rc_out)).propcode, (unnest(rc_out)).propname, x from employeefunc1() ;
+
