@@ -259,3 +259,10 @@ SELECT STRING_AGG(job, '-> ' ORDER BY level) FROM cte;
 |string_agg                    |
 |------------------------------|
 |Developer-> Manager-> VP-> CEO|
+
+
+
+--Alternative for Oracle's ORDER BY SIBLINGS
+
+SELECT * FROM connectby('dummy_table', 'emp_no', 'manager_no', 'emp_no', '10', 0,'->') 
+		AS t(emp_no int, manager_no int, level int, branch text, ord int);
