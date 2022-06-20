@@ -1,0 +1,19 @@
+Functions can have different stabilities, meaning that calling them multiple times with the same inputs can result in different outputs, 
+or that the result can be affected by parameters that can be changed at any point. You can declare the stability on the function by specifying either:
+
+IMMUTABLE — given the same inputs, the result will never change no matter what
+
+STABLE — given the same inputs, the result can change between statements
+
+VOLATILE — given the same inputs, the result can change at any point, and may even make changes to the database to make subsequent call results change
+
+Why would you care about specifying which one of these applies?
+Well, PostgreSQL's optimizer will assess whether it can cache the result of the function when the call is being made multiple times, 
+which saves the function from being called unnecessarily.
+If your function takes two parameters and adds them together, the result will be IMMUTABLE, because nothing can affect the operation,
+and the planner knows that if it has called the function before with the same parameters, it doesn't need to bother running it again; 
+it just needs to remember what the result was from last time. This can be particularly helpful if a lot of calculations are performed, 
+as it will save a lot of time and improve performance.
+
+However, if your result depends on parameters such as timezone, or use functions that are themselves STABLE or VOLATILE, 
+then your function has to match that same stability level.
