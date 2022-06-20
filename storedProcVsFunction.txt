@@ -1,0 +1,56 @@
+The main difference is you cannot use multiple transactions (COMMIT/ROLLBACK) in a function. 
+where as in procedure you can
+
+Function will execute as in a single transaction always. 
+
+CREATE TABLE employees (
+   id serial PRIMARY KEY,
+   name varchar(255) NOT NULL,
+   salary integer,
+   job varchar(255),
+   manager_id int,
+   FOREIGN KEY (manager_id) REFERENCES employees (id) ON DELETE CASCADE
+);
+
+INSERT INTO employees (
+    id,
+    name,
+    manager_id,
+    salary,
+    job
+)
+VALUES
+    (1,  'John', NULL, 10000, 'CEO'),
+    (2,  'Ben', 5, 1400, 'Junior Developer'),
+    (3,  'Barry', 5, 500, 'Intern'),
+    (4,  'George', 5, 1800, 'Developer'),
+    (5,  'James', 7, 3000, 'Manager'),
+    (6,  'Steven', 7, 2400, 'DevOps Engineer'),
+    (7,  'Alice', 1, 4200, 'VP'),
+    (8,  'Jerry', 1, 3500, 'Manager'),
+    (9,  'Adam', 8, 2000, 'Data Analyst'),
+    (10, 'Grace', 8, 2500, 'Developer');
+
+CREATE OR REPLACE PROCEDURE control_transaction()
+LANGUAGE plpgsql
+AS $$
+ DECLARE
+ BEGIN
+   INSERT INTO employees (
+    id,
+    name,
+    manager_id,
+    salary,
+    job
+) values (14, 'Grace', 8, 2500, 'Developer');
+   COMMIT;
+EXCEPTION 
+WHEN unique_violation then 
+RAISE NOTICE '%', SQLerrm;
+rollback;
+ END $$;
+ 
+ call control_transaction(); 
+ 
+ This procedure doesn't return any error. 
+ 
