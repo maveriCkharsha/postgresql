@@ -266,3 +266,16 @@ SELECT STRING_AGG(job, '-> ' ORDER BY level) FROM cte;
 
 SELECT * FROM connectby('dummy_table', 'emp_no', 'manager_no', 'emp_no', '10', 0,'->') 
 		AS t(emp_no int, manager_no int, level int, branch text, ord int);
+
+
+
+--Fibanocci series
+
+WITH RECURSIVE fib AS (
+SELECT 1 as "fib", 1 as "fib +1"
+UNION ALL
+SELECT "fib +1", "fib" + "fib +1"
+FROM fib
+)
+SELECT "fib" FROM fib
+LIMIT 10;
