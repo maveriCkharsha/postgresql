@@ -1,3 +1,7 @@
+--Just to see which tables qualify for autovacuum at all, the following query may be used 
+--(based on http://www.postgresql.org/docs/current/static/routine-vacuuming.html). 
+--Note however, that the query does not look for table specific settings:
+
 WITH rel_set AS
 (
     SELECT
