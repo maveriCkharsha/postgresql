@@ -64,7 +64,7 @@ SELECT
   CASE WHEN ipages < iotta THEN '0' ELSE (bs*(ipages-iotta))::bigint END AS raw_waste
 FROM
   index_bloat) bloat_summary
-ORDER BY raw_waste DESC, bloat DESC
+ORDER BY raw_waste DESC, bloat DESC;
 
 --Method2
 -- new table bloat query
@@ -207,3 +207,91 @@ FROM bloat_data
 WHERE ( pct_bloat >= 50 AND mb_bloat >= 10 )
     OR ( pct_bloat >= 25 AND mb_bloat >= 1000 )
 ORDER BY mb_bloat DESC;
+
+--Method 3
+SELECT current_database()                      AS current_db,
+       schemaname                              AS schema_name,
+       tblname                                 AS table_name,
+       (bs * tblpages) / 1024                  AS actual_table_size_kb,
+       ((tblpages - est_tblpages) * bs) / 1024 AS wasted_space_kb,
+       CASE
+           WHEN tblpages > 0 AND tblpages - est_tblpages > 0 THEN 100 * (tblpages - est_tblpages) / tblpages::float
+           ELSE 0
+           END                                 AS wasted_space_percent,
+       fillfactor                              AS table_fill_factor,
+       CASE
+           WHEN tblpages - est_tblpages_ff > 0 THEN (tblpages - est_tblpages_ff) * bs / 1024
+           ELSE 0
+           END                                 AS bloat_size_kb,
+       CASE
+           WHEN tblpages > 0 AND tblpages - est_tblpages_ff > 0 THEN 100 * (tblpages - est_tblpages_ff) / tblpages::float
+           ELSE 0
+           END                                 AS bloat_size_percent,
+       is_na                                   AS has_non_atomic_data_types
+FROM (SELECT ceil(reltuples / ((bs - page_hdr) / tpl_size)) + ceil(toasttuples / 4)                      AS est_tblpages,
+             ceil(reltuples / ((bs - page_hdr) * fillfactor / (tpl_size * 100))) +
+             ceil(toasttuples / 4)                                                                       AS est_tblpages_ff,
+             tblpages,
+             fillfactor,
+             bs,
+             schemaname,
+             tblname,
+             is_na
+      FROM (SELECT (4 + tpl_hdr_size + tpl_data_size + (2 * ma)
+          - CASE
+                WHEN tpl_hdr_size % ma = 0 THEN ma
+                ELSE tpl_hdr_size % ma
+                        END
+          - CASE
+                WHEN ceil(tpl_data_size)::int % ma = 0 THEN ma
+                ELSE ceil(tpl_data_size)::int % ma
+                        END
+                       )                    AS tpl_size,
+                   (heappages + toastpages) AS tblpages,
+                   heappages,
+                   toastpages,
+                   reltuples,
+                   toasttuples,
+                   bs,
+                   page_hdr,
+                   schemaname,
+                   tblname,
+                   fillfactor,
+                   is_na
+            FROM (SELECT ns.nspname                                                                 AS schemaname,
+                         tbl.relname                                                                AS tblname,
+                         tbl.reltuples,
+                         tbl.relpages                                                               AS heappages,
+                         coalesce(toast.relpages, 0)                                                AS toastpages,
+                         coalesce(toast.reltuples, 0)                                               AS toasttuples,
+                         coalesce(substring(array_to_string(tbl.reloptions, ' ') FROM 'fillfactor=([0-9]+)')::smallint,
+                                  100)                                                              AS fillfactor,
+                         current_setting('block_size')::numeric                                     AS bs,
+                         CASE
+                             WHEN version() ~ 'mingw32' OR version() ~ '64-bit|x86_64|ppc64|ia64|amd64' THEN 8
+                             ELSE 4
+                             END                                                                    AS ma,
+                         24                                                                         AS page_hdr,
+                         23 + CASE
+                                  WHEN MAX(coalesce(s.null_frac, 0)) > 0 THEN (7 + count(s.attname)) / 8
+                                  ELSE 0::int
+                             END
+                             + CASE
+                                   WHEN bool_or(att.attname = 'oid' and att.attnum < 0) THEN 4
+                                   ELSE 0
+                             END                                                                    AS tpl_hdr_size,
+                         sum((1 - coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 0))             AS tpl_data_size,
+                         bool_or(att.atttypid = 'pg_catalog.name'::regtype)
+                             OR sum(CASE WHEN att.attnum > 0 THEN 1 ELSE 0 END) <> count(s.attname) AS is_na
+                  FROM pg_attribute AS att
+                           JOIN pg_class AS tbl ON att.attrelid = tbl.oid
+                           JOIN pg_namespace AS ns ON ns.oid = tbl.relnamespace
+                           LEFT JOIN pg_stats AS s ON s.schemaname = ns.nspname
+                      AND s.tablename = tbl.relname AND s.inherited = false AND s.attname = att.attname
+                           LEFT JOIN pg_class AS toast ON tbl.reltoastrelid = toast.oid
+                  WHERE NOT att.attisdropped
+                    AND tbl.relkind in ('r', 'm')
+                  GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+                  ORDER BY 2, 3) AS subquery1) AS subquery2) AS subquery3
+WHERE schemaname = 'public'
+ORDER BY schema_name, table_name;
